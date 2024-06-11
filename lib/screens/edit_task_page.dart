@@ -3,50 +3,32 @@ import 'package:provider/provider.dart';
 import '../models/task.dart';
 import '../providers/task_provider.dart';
 
-class AddTaskPage extends StatefulWidget {
-  const AddTaskPage({Key? key}) : super(key: key);
+class EditTaskPage extends StatefulWidget {
+  final Task task;
+
+  const EditTaskPage({Key? key, required this.task}) : super(key: key);
 
   @override
-  _AddTaskPageState createState() => _AddTaskPageState();
+  _EditTaskPageState createState() => _EditTaskPageState();
 }
 
-class _AddTaskPageState extends State<AddTaskPage> {
+class _EditTaskPageState extends State<EditTaskPage> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _titleFocusNode = FocusNode();
-  DateTime _dueDate = DateTime.now();
+  late TextEditingController _titleController;
+  late DateTime _dueDate;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _titleFocusNode.requestFocus();
-    });
-  }
-
-  @override
-  void dispose() {
-    _titleFocusNode.dispose();
-    _titleController.dispose();
-    super.dispose();
-  }
-
-  void _saveTask() {
-    if (_formKey.currentState!.validate()) {
-      final newTask = Task(
-        title: _titleController.text,
-        dueDate: _dueDate,
-      );
-      Provider.of<TaskProvider>(context, listen: false).addTask(newTask);
-      Navigator.pop(context);
-    }
+    _titleController = TextEditingController(text: widget.task.title);
+    _dueDate = widget.task.dueDate;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add New"),
+        title: const Text("Edit Task"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -56,7 +38,6 @@ class _AddTaskPageState extends State<AddTaskPage> {
             children: [
               TextFormField(
                 controller: _titleController,
-                focusNode: _titleFocusNode,
                 decoration: const InputDecoration(labelText: 'Title'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -72,13 +53,25 @@ class _AddTaskPageState extends State<AddTaskPage> {
                 trailing: const Icon(Icons.calendar_today),
                 onTap: _selectDueDate,
               ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    final editedTask = Task(
+                      title: _titleController.text,
+                      dueDate: _dueDate,
+                      isCompleted: widget.task.isCompleted,
+                    );
+                    Provider.of<TaskProvider>(context, listen: false)
+                        .editTask(widget.task, editedTask);
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text('Save Changes'),
+              ),
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _saveTask,
-        child: const Icon(Icons.save),
       ),
     );
   }

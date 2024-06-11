@@ -1,3 +1,4 @@
+import 'package:first_todo_app/screens/edit_task_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/task.dart';
@@ -27,9 +28,25 @@ class TaskList extends StatelessWidget {
           ),
           title: Text(task.title),
           subtitle: Text('Due: ${DateFormat.yMMMd().format(task.dueDate)}'),
-          trailing: IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () => onDelete(task),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditTaskPage(task: task),
+                    ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () => onDelete(task),
+              ),
+            ],
           ),
         );
       },
