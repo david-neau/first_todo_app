@@ -16,12 +16,35 @@ class _EditTaskPageState extends State<EditTaskPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late DateTime _dueDate;
+  final _titleFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.task.title);
     _dueDate = widget.task.dueDate;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _titleFocusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _titleFocusNode.dispose();
+    _titleController.dispose();
+    super.dispose();
+  }
+
+  void _saveTask() {
+    if (_formKey.currentState!.validate()) {
+      final updatedTask = widget.task.copyWith(
+        title: _titleController.text,
+        dueDate: _dueDate,
+      );
+      Provider.of<TaskProvider>(context, listen: false)
+          .editTask(widget.task, updatedTask);
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -38,6 +61,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
             children: [
               TextFormField(
                 controller: _titleController,
+                focusNode: _titleFocusNode,
                 decoration: const InputDecoration(labelText: 'Title'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -53,25 +77,13 @@ class _EditTaskPageState extends State<EditTaskPage> {
                 trailing: const Icon(Icons.calendar_today),
                 onTap: _selectDueDate,
               ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    final editedTask = Task(
-                      title: _titleController.text,
-                      dueDate: _dueDate,
-                      isCompleted: widget.task.isCompleted,
-                    );
-                    Provider.of<TaskProvider>(context, listen: false)
-                        .editTask(widget.task, editedTask);
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Save Changes'),
-              ),
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _saveTask,
+        child: const Icon(Icons.save),
       ),
     );
   }
