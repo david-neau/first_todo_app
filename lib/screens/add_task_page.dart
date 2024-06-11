@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'task.dart';
+import 'package:provider/provider.dart';
+import '../models/task.dart';
+import '../providers/task_provider.dart';
 
 class AddTaskPage extends StatefulWidget {
-  final Function(Task) onAdd;
-
-  const AddTaskPage({Key? key, required this.onAdd}) : super(key: key);
+  const AddTaskPage({Key? key}) : super(key: key);
 
   @override
   _AddTaskPageState createState() => _AddTaskPageState();
@@ -29,7 +29,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
             children: [
               TextFormField(
                 controller: _titleController,
-                decoration: InputDecoration(labelText: 'Title'),
+                decoration: const InputDecoration(labelText: 'Title'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a title';
@@ -37,13 +37,14 @@ class _AddTaskPageState extends State<AddTaskPage> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ListTile(
-                title: Text('Due Date: ${_dueDate.toLocal()}'.split(' ')[0]),
-                trailing: Icon(Icons.calendar_today),
+                title:
+                    Text('Due Date: ${_dueDate.toLocal().toShortDateString()}'),
+                trailing: const Icon(Icons.calendar_today),
                 onTap: _selectDueDate,
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -51,11 +52,12 @@ class _AddTaskPageState extends State<AddTaskPage> {
                       title: _titleController.text,
                       dueDate: _dueDate,
                     );
-                    widget.onAdd(newTask);
-                    Navigator.pop(context); // Go back to previous screen
+                    Provider.of<TaskProvider>(context, listen: false)
+                        .addTask(newTask);
+                    Navigator.pop(context);
                   }
                 },
-                child: Text('Add Task'),
+                child: const Text('Add Task'),
               ),
             ],
           ),
@@ -76,5 +78,11 @@ class _AddTaskPageState extends State<AddTaskPage> {
         _dueDate = picked;
       });
     }
+  }
+}
+
+extension DateHelpers on DateTime {
+  String toShortDateString() {
+    return '${this.year}-${this.month.toString().padLeft(2, '0')}-${this.day.toString().padLeft(2, '0')}';
   }
 }
